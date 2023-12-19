@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,66 @@ using System.Threading.Tasks;
 
 namespace AplikacjaWydatki
 {
+    interface IManageCategories
+    {
+        void AddCategory(string category);
+        void RemoveCategory(string category);
+        void EditCategory(string oldCategory, string newCategory);
+        void ShowAllCategories();
+    }
+
+    class CategoryManager : IManageCategories
+    {
+        private List<string> categories;
+
+        public CategoryManager()
+        {
+            categories = new List<string>();
+        }
+
+        public void AddCategory(string category)
+        {
+            categories.Add(category);
+            Console.WriteLine($"Dodano kategorię: {category}");
+        }
+
+        public void RemoveCategory(string category)
+        {
+            if (categories.Contains(category))
+            {
+                categories.Remove(category);
+                Console.WriteLine($"Usunięto kategorię: {category}");
+            }
+            else
+            {
+                Console.WriteLine("Podana kategoria nie istnieje.");
+            }
+        }
+
+        public void EditCategory(string oldCategory, string newCategory)
+        {
+            if (categories.Contains(oldCategory))
+            {
+                int index = categories.IndexOf(oldCategory);
+                categories[index] = newCategory;
+                Console.WriteLine($"Zmieniono nazwę kategorii z {oldCategory} na {newCategory}");
+            }
+            else
+            {
+                Console.WriteLine("Podana kategoria nie istnieje.");
+            }
+        }
+
+        public virtual void ShowAllCategories()
+        {
+            Console.WriteLine("Lista wszystkich kategorii:");
+            foreach (var category in categories)
+            {
+                Console.WriteLine(category);
+            }
+        }
+    }
+
     class Expense
     {
         public string Category { get; set; }
@@ -13,7 +73,7 @@ namespace AplikacjaWydatki
         public DateTime Date { get; set; }
     }
 
-    class ExpenseManager
+    class ExpenseManager : CategoryManager
     {
         private List<Expense> expenseList;
 
@@ -60,6 +120,11 @@ namespace AplikacjaWydatki
             var expensesInPeriod = GetExpensesInPeriod(start, end);
             return expensesInPeriod.Sum(e => e.Amount);
         }
+
+        public override void ShowAllCategories()
+        {
+            base.ShowAllCategories();
+        }
     }
 
     class Program
@@ -67,14 +132,15 @@ namespace AplikacjaWydatki
         static void Main(string[] args)
         {
             ExpenseManager expenseManager = new ExpenseManager();
-
             bool exit = false;
+
             while (!exit)
             {
                 Console.WriteLine("1. Dodaj nowy wydatek");
                 Console.WriteLine("2. Generuj raport z wydatków w określonym okresie");
                 Console.WriteLine("3. Oblicz całkowitą kwotę wydatków w określonym okresie");
-                Console.WriteLine("4. Zakończ");
+                Console.WriteLine("4. Zarządzaj kategoriami");
+                Console.WriteLine("5. Zakończ");
 
                 Console.Write("Wybierz opcję: ");
                 string choice = Console.ReadLine();
@@ -146,17 +212,65 @@ namespace AplikacjaWydatki
                         break;
 
                     case "4":
-                        exit = true;
-                        break;
+                        bool categoryMenu = true;
+                        CategoryManager categoryManager = new CategoryManager(); 
+                        while (categoryMenu)
+                        {
+                            Console.WriteLine("1. Dodaj kategorię");
+                            Console.WriteLine("2. Usuń kategorię");
+                            Console.WriteLine("3. Zmień nazwę kategorii");
+                            Console.WriteLine("4. Pokaż wszystkie kategorie");
+                            Console.WriteLine("5. Powrót do głównego menu");
 
-                    default:
-                        Console.WriteLine("Nieprawidłowy wybór.");
+                            Console.Write("Wybierz opcję: ");
+                            string categoryChoice = Console.ReadLine();
+
+                            switch (categoryChoice)
+                            {
+                                case "1":
+                                    Console.Write("Podaj nazwę kategorii: ");
+                                    string newCategory = Console.ReadLine();
+                                    categoryManager.AddCategory(newCategory); 
+                                    break;
+
+                                case "2":
+                                    Console.Write("Podaj nazwę kategorii do usunięcia: ");
+                                    string categoryToRemove = Console.ReadLine();
+                                    categoryManager.RemoveCategory(categoryToRemove);
+                                    break;
+
+                                case "3":
+                                    Console.Write("Podaj nazwę istniejącej kategorii do zmiany: ");
+                                    string oldCategory = Console.ReadLine();
+                                    Console.Write("Podaj nową nazwę kategorii: ");
+                                    string updatedCategory = Console.ReadLine();
+                                    categoryManager.EditCategory(oldCategory, updatedCategory); 
+                                    break;
+
+                                case "4":
+                                    categoryManager.ShowAllCategories(); 
+                                    break;
+
+                                case "5":
+                                    categoryMenu = false;
+                                    break;
+
+                                default:
+                                    Console.WriteLine("Nieprawidłowa opcja.");
+                                    break;
+                            }
+                        }
                         break;
                 }
-
-                Console.WriteLine();
+                        }
+                       
+                }
             }
         }
-    }
-}
+    
+
+
+
+
+
 
